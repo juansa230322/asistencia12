@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#122349" />
+  <title>AulaControl | Sistema de asistencia</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Orden de carga MVC: datos → modelos → persistencia → servicios → vista → controlador → inicio -->
+  <script src="js/data/demoStudents.js" defer></script>
+  <script src="js/models/Student.js" defer></script>
+  <script src="js/models/AttendanceRecord.js" defer></script>
+  <script src="js/services/LocalStorageRepository.js" defer></script>
+  <script src="js/services/AttendanceService.js" defer></script>
+  <script src="js/views/AppView.js" defer></script>
+  <script src="js/controllers/AppController.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="brand-icon">A</span><div><strong>AulaControl</strong><small>Gestión académica</small></div></div>
+      <div class="side-caption">MENÚ PRINCIPAL</div>
+      <nav class="nav" aria-label="Navegación principal">
+        <button class="nav-item active" data-view="dashboard"><span>▦</span> Panel general</button>
+        <button class="nav-item" data-view="students"><span>♙</span> Estudiantes</button>
+        <button class="nav-item" data-view="attendance"><span>✓</span> Tomar asistencia</button>
+        <button class="nav-item" data-view="history"><span>▤</span> Historial y reportes</button>
+      </nav>
+      <div class="side-bottom"><span class="online-dot"></span> Modo local · Sin conexión necesaria <small>La información se guarda en este navegador.</small></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><button id="menu-toggle" class="icon-btn menu-toggle" aria-label="Abrir menú">☰</button><span class="top-label">Sistema de registro y asistencia</span><div class="top-pill">● Prototipo académico</div></header>
+      <div class="content">
+        <section class="view active" id="view-dashboard">
+          <div class="page-heading"><div><span class="eyebrow">RESUMEN GENERAL</span><h1>Panel de control</h1><p>Supervisa estudiantes, asistencias y alertas académicas.</p></div><button class="btn btn-primary" data-go="attendance">+ Tomar asistencia</button></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-icon blue">♙</div><div class="stat-title">Estudiantes registrados</div><strong id="stat-students">0</strong><span>En la plataforma</span></article>
+            <article class="stat-card"><div class="stat-icon green">✓</div><div class="stat-title">Asistencias</div><strong id="stat-present">0</strong><span>Registros acumulados</span></article>
+            <article class="stat-card"><div class="stat-icon amber">◷</div><div class="stat-title">Retardos</div><strong id="stat-late">0</strong><span>Registros acumulados</span></article>
+            <article class="stat-card"><div class="stat-icon red">!</div><div class="stat-title">Fallas</div><strong id="stat-absent">0</strong><span>Registros acumulados</span></article>
+          </div>
+          <div class="two-columns"><article class="panel"><div class="panel-title"><h2>Actividad reciente</h2><span class="muted">Últimos registros</span></div><div id="recent-activity" class="activity-list"></div></article><article class="panel"><div class="panel-title"><h2>Alertas de asistencia</h2><span class="chip chip-red">3 o más fallas</span></div><div id="dashboard-alerts"></div></article></div>
+          <div class="tip">ℹ️ <span><strong>¿Cómo empezar?</strong> Registra estudiantes, luego entra en “Tomar asistencia” para asignar un estado por fecha. Puedes corregir un registro sin duplicarlo.</span></div>
+        </section>
+        <section class="view" id="view-students">
+          <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Gestión de estudiantes</h1><p>Registra, busca, edita y elimina estudiantes.</p></div><div class="student-heading-actions"><button class="btn btn-light" id="load-demo" title="Agrega estudiantes ficticios sin borrar los que ya tienes">↻ Cargar estudiantes de prueba</button><button class="btn btn-primary" id="new-student">+ Nuevo estudiante</button></div></div>
+          <div class="panel"><div class="panel-title"><h2>Listado de estudiantes <span id="student-count" class="count-bubble">0</span></h2></div><div class="toolbar"><label class="search-wrap"><span>⌕</span><input id="student-search" type="search" placeholder="Buscar por nombre, código, documento o curso..." aria-label="Buscar estudiante" /></label><select id="student-course-filter" aria-label="Filtrar por curso"><option value="">Todos los cursos</option></select></div><div class="table-scroll"><table><thead><tr><th>Estudiante</th><th>Código</th><th>Documento</th><th>Correo</th><th>Curso</th><th>Fallas</th><th>Acciones</th></tr></thead><tbody id="students-body"></tbody></table></div></div>
+        </section>
+        <section class="view" id="view-attendance">
+          <div class="page-heading"><div><span class="eyebrow">CONTROL DIARIO</span><h1>Tomar asistencia</h1><p>Marca Asistencia, Retardo o Falla para cada estudiante.</p></div><div class="date-selection"><label for="attendance-date">Fecha de registro</label><input type="date" id="attendance-date" required /></div></div>
+          <div class="panel"><div class="toolbar"><label class="search-wrap"><span>⌕</span><input id="attendance-search" type="search" placeholder="Buscar estudiante..." aria-label="Buscar estudiante para asistencia" /></label><select id="attendance-course" aria-label="Filtrar curso de asistencia"><option value="">Todos los cursos</option></select><span class="muted" id="attendance-progress"></span></div><div class="table-scroll"><table><thead><tr><th>Estudiante</th><th>Curso</th><th>Asistencia</th><th>Retardo</th><th>Falla</th><th>Acumulado</th></tr></thead><tbody id="attendance-body"></tbody></table></div></div><p class="small-info">Cada cambio se guarda automáticamente. Al seleccionar otro estado en la misma fecha, se actualiza el registro anterior.</p>
+        </section>
+        <section class="view" id="view-history">
+          <div class="page-heading"><div><span class="eyebrow">SEGUIMIENTO</span><h1>Historial y reportes</h1><p>Consulta tus registros y descarga resultados en formato CSV.</p></div><button class="btn btn-primary" id="export-csv">↓ Exportar CSV</button></div>
+          <div class="panel"><div class="toolbar filters"><label class="search-wrap"><span>⌕</span><input id="history-search" type="search" placeholder="Nombre, código o curso..." aria-label="Buscar en historial" /></label><input id="history-date" type="date" aria-label="Filtrar por fecha" /><select id="history-state" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="Asistencia">Asistencia</option><option value="Retardo">Retardo</option><option value="Falla">Falla</option></select><button id="clear-history-filters" class="btn btn-light">Limpiar filtros</button></div><div class="results-line" id="history-count">0 registros</div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Estudiante</th><th>Código</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="history-body"></tbody></table></div></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="modal-overlay" id="student-modal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><div><span class="eyebrow">DATOS ACADÉMICOS</span><h2 id="modal-title">Nuevo estudiante</h2></div><button class="icon-btn" id="close-modal" aria-label="Cerrar">×</button></div><form id="student-form"><input type="hidden" id="student-id" /><div class="form-grid"><label>Código de estudiante *<input id="student-code" required maxlength="30" placeholder="Ej. EST001" /></label><label>Documento *<input id="student-document" required maxlength="30" placeholder="Ej. 1023456789" /></label><label>Nombres *<input id="student-firstname" required maxlength="80" placeholder="Ej. Juan Pablo" /></label><label>Apellidos *<input id="student-lastname" required maxlength="80" placeholder="Ej. Pérez Gómez" /></label><label class="full">Correo electrónico *<input id="student-email" type="email" required maxlength="120" placeholder="estudiante@ejemplo.com" /></label><label class="full">Curso *<input id="student-course" required maxlength="80" placeholder="Ej. Programación I" /></label></div><p class="small-info">* Campos obligatorios. Utiliza datos ficticios o autorizados.</p><div class="modal-actions"><button type="button" class="btn btn-light" id="cancel-modal">Cancelar</button><button type="submit" class="btn btn-primary">Guardar estudiante</button></div></form></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
